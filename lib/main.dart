@@ -76,4 +76,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+  Widget build(BuildContext context) => Scaffold(
+    drawer: NavigationDrawerWidget(),
+    appBar: AppBar(
+      backgroundColorL Colors.red,
+      title: Text(MyApp.title),
+      centerTitle: true,
+    ),
+  );
+
+
+
 }
+
+
+
