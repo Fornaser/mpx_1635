@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mpx_1635/pages/home_page.dart';
 import 'package:mpx_1635/pages/library_page.dart';
 import 'package:mpx_1635/pages/media_page.dart';
-import 'package:mpx_1635/scr/sidebar/widgets/navigation_drawer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +37,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const NavigationDrawerWidget(),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
@@ -50,34 +48,45 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
+                  MaterialPageRoute(builder: (context) => HomePage())
                 );
-              },
-              child: const Text('Home Page'),
+              } 
+              ,child: Text("Home Page")
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MediaPage()),
+                  MaterialPageRoute(builder: (context) => MediaPage())
                 );
-              },
-              child: const Text('Media Page'),
+              } 
+            , child: Text("Media Page")
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LibraryPage()),
+                  MaterialPageRoute(builder: (context) => LibraryPage())
                 );
-              },
-              child: const Text('Library Page'),
-            ),
+              } 
+            , child: Text("Library Page")
+            )
           ],
-        ),
+        )
       ),
     );
   }
+  Widget build(BuildContext context) => Scaffold(
+    drawer: NavigationDrawerWidget(),
+    appBar: AppBar(
+      backgroundColorL Colors.red,
+      title: Text(MyApp.title),
+      centerTitle: true,
+    ),
+  );
+
+
+
 }
 
 
