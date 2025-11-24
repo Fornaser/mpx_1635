@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mpx_1635/pages/home_page.dart';
 import 'package:mpx_1635/pages/library_page.dart';
 import 'package:mpx_1635/pages/media_page.dart';
-import 'package:mpx_1635/scr/sidebar/widgets/navigation_drawer.dart';
+import 'package:mpx_1635/scr/sidebar/widgets/nav_bar/navigation_drawer.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,11 +14,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'RemindDb',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'RemindDb'),
     );
   }
 }
