@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mpx_1635/pages/home_page.dart';
+import 'package:mpx_1635/pages/media_page.dart';
+import 'package:mpx_1635/pages/library_page.dart';
 
 class NavigationDrawerWidget extends StatelessWidget {
     const NavigationDrawerWidget({super.key});
@@ -39,19 +42,37 @@ class NavigationDrawerWidget extends StatelessWidget {
                             context,
                             icon: Icons.home,
                             label: 'Home',
-                            onTap: () => Navigator.pop(context),
+                            onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const HomePage()),
+                                );
+                            },
                         ),
                         _buildItem(
                             context,
                             icon: Icons.music_note,
                             label: 'Media',
-                            onTap: () => Navigator.pop(context),
+                            onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const MediaPage()),
+                                );
+                            },
                         ),
                         _buildItem(
                             context,
                             icon: Icons.library_books,
                             label: 'Library',
-                            onTap: () => Navigator.pop(context),
+                            onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LibraryPage()),
+                                );
+                            },
                         ),
                     ],
                 ),
