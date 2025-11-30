@@ -1,21 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:mpx_1635/models/playlist_model.dart';
+import 'package:mpx_1635/models/playlist_repository.dart';
+import 'package:mpx_1635/pages/home_page.dart';
 
-//maybe add page individually for each media type?
-class LibraryPage extends StatefulWidget {
-  const LibraryPage({super.key});
+class LibraryPage extends StatelessWidget {
+  final Playlist playlist;
 
-  @override
-  State<LibraryPage> createState() => _LibraryPageState();
-}
+  const LibraryPage({super.key, required this.playlist});
 
-class _LibraryPageState extends State<LibraryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Library"), backgroundColor: Colors.grey),
-      body: Container(
-        child: Text("This is the library page")
-      )
+      appBar: AppBar(title: Text(playlist.title), backgroundColor: Colors.grey),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: playlist.media.isEmpty
+            ? const Center(child: Text("No media in this playlist."))
+            : ListView.separated(
+                itemCount: playlist.media.length,
+                separatorBuilder: (_, __) => const Divider(),
+                itemBuilder: (context, index) {
+                  final item = playlist.media[index];
+                  return ListTile(
+                    leading: const Icon(Icons.playlist_play),
+                    title: Text(item),
+                  );
+                },
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const HomePage()),
+          );
+        }
+      ),
     );
   }
 }
