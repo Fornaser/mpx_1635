@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/global_widgets/search_bar/base_page.dart';
-import 'package:mpx_1635/pages/search_results.dart';
+import 'package:mpx_1635/pages/search_results_page.dart';
 import 'package:mpx_1635/service/book_service.dart';
 import 'package:mpx_1635/widgets/book_carousel.dart';
 import 'package:mpx_1635/models/media_model.dart';

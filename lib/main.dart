@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/pages/home_page.dart';
 import 'package:mpx_1635/pages/playlist_page.dart';
-import 'package:mpx_1635/pages/media_page.dart';
+//import 'package:mpx_1635/pages/media_page.dart';
 import 'package:mpx_1635/scr/sidebar/widgets/nav_bar/navigation_drawer.dart';
 
 void main() {
