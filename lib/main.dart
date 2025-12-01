@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/pages/home_page.dart';
-import 'package:mpx_1635/pages/library_page.dart';
+import 'package:mpx_1635/pages/playlist_page.dart';
 import 'package:mpx_1635/pages/media_page.dart';
 import 'package:mpx_1635/scr/sidebar/widgets/nav_bar/navigation_drawer.dart';
 
@@ -55,20 +55,20 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Text('Home Page'),
             ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => MediaPage()),
+            //     );
+            //   },
+            //   child: const Text('Media Page'),
+            // ),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MediaPage()),
-                );
-              },
-              child: const Text('Media Page'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LibraryPage()),
+                  MaterialPageRoute(builder: (context) => PlaylistPage()),
                 );
               },
               child: const Text('Library Page'),
