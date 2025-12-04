@@ -34,6 +34,25 @@ class BookService {
     );
   }
 
+  Future<String?> searchForOLID(String title) async {
+    final url = Uri.parse(
+      'https://openlibrary.org/search.json?title=${Uri.encodeComponent(title)}'
+    );
+
+    final response = await http.get(url);
+    if (response.statusCode != 200) return null;
+
+    final data = jsonDecode(response.body);
+    final docs = data['docs'] as List<dynamic>;
+
+    if (docs.isEmpty) return null;
+
+    final editionKeys = docs[0]['edition_key'] as List<dynamic>?;
+    if (editionKeys == null || editionKeys.isEmpty) return null;
+
+    return editionKeys[0] as String;
+  }
+
   Future<List<Book>> fetchFeaturedBooks({String subject = "popular"}) async {
     final url = Uri.parse("https://openlibrary.org/subjects/$subject.json?limit=10");
     final response = await http.get(url);

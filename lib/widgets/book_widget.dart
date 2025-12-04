@@ -3,9 +3,9 @@ import 'package:mpx_1635/models/media_model.dart';
 
 class BookCard extends StatelessWidget {
   final Book book;
-  final VoidCallback onAdd;
+  // final VoidCallback onAdd;
 
-  const BookCard({super.key, required this.book, required this.onAdd});
+  const BookCard({super.key, required this.book});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/pages/home_page.dart';
+import 'package:mpx_1635/pages/playlist_page.dart';
 //import 'package:mpx_1635/pages/media_page.dart';
 //import 'package:mpx_1635/pages/library_page.dart';
 
@@ -47,6 +48,18 @@ class NavigationDrawerWidget extends StatelessWidget {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(builder: (context) => const HomePage()),
+                                );
+                            },
+                        ),
+                        _buildItem(
+                            context,
+                            icon: Icons.home,
+                            label: 'Playlists',
+                            onTap: () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const PlaylistPage()),
                                 );
                             },
                         ),

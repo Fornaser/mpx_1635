@@ -1,4 +1,7 @@
-//import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:mpx_1635/models/media_model.dart';
+import 'package:http/http.dart' as http;
 
 enum MediaType { book }
 
@@ -74,7 +77,32 @@ class Book {
       coverUrl: cover,
     );
   }
+
+  Future<Book> fetchBookDetails(String idOrTitle) async {
+    try {
+      final url = Uri.parse("https://openlibrary.org/books/$idOrTitle.json");
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Book.fromDetailsJson(data, idOrTitle);
+      }
+      final searchUrl = Uri.parse(
+        "https://openlibrary.org/search.json?title=${Uri.encodeComponent(idOrTitle)}&limit=1"
+      );
+      final searchResp = await http.get(searchUrl);
+      if (searchResp.statusCode != 200) throw Exception("Book not found");
+      final searchData = jsonDecode(searchResp.body);
+      if ((searchData['docs'] as List).isEmpty) throw Exception("Book not found");
+      final doc = searchData['docs'][0];
+      return Book.fromSearchJson(doc);
+
+    } catch (e) {
+      throw Exception("Book not found: $idOrTitle");
+    }
+  }
 }
+
 
 class Movie {
   final String id;

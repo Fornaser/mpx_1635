@@ -102,27 +102,60 @@ class _PlaylistsPageState extends State<PlaylistPage> {
           : playlists.isEmpty
               ? const Center(child: Text("No playlists found."))
               : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: playlists.length,
-                  itemBuilder: (context, index) {
-                    final playlist = playlists[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: Text(playlist.title),
-                        trailing: Text(playlist.date.toLocal().toIso8601String().split('T').first),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => LibraryPage(playlist: playlist),
-                            ),
-                          );
-                        },
-                      ),
+        padding: const EdgeInsets.all(16),
+        itemCount: playlists.length,
+        itemBuilder: (context, index) {
+          final playlist = playlists[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ListTile(
+              title: Text(playlist.title),
+              subtitle: Text(
+                playlist.mediatype + " • " +
+                playlist.date.toLocal().toIso8601String().split('T').first,
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Playlist'),
+                      content: Text('Are you sure you want to delete "${playlist.title}"?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    await PlaylistRepository.delete(playlist: playlist);
+                    _loadPlaylists(); // reload the list
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Deleted "${playlist.title}"')),
                     );
-                  },
-                ),
+                  }
+                },
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => LibraryPage(playlist: playlist),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddPlaylistDialog,
         child: const Icon(Icons.add),

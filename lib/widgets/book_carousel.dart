@@ -4,7 +4,7 @@ import 'book_widget.dart';
 import 'package:mpx_1635/pages/media_page.dart';
 class BookCarousel extends StatefulWidget {
   final List<Book> books;
-  final void Function(Book) onAddToPlaylist;
+  // final void Function(Book) onAddToPlaylist;
   final double minCardWidth;
   final double maxCardWidth;
   final double edgePadding; 
@@ -12,7 +12,7 @@ class BookCarousel extends StatefulWidget {
   const BookCarousel({
     super.key,
     required this.books,
-    required this.onAddToPlaylist,
+    // required this.onAddToPlaylist,
     this.minCardWidth = 140,
     this.maxCardWidth = 200,
     this.edgePadding = 16,
@@ -80,7 +80,7 @@ class _BookCarouselState extends State<BookCarousel> {
                         },
                         child: BookCard(
                           book: book,
-                          onAdd: () => widget.onAddToPlaylist(book),
+                          // onAdd: () => widget.onAddToPlaylist(book),
                         ),
                       ),
                     ),

@@ -55,6 +55,28 @@ class SearchService {
       );
     }).toList();
   }
+  
+  Future<Book?> fetchBookById(String id) async {
+    final url = Uri.parse('https://www.googleapis.com/books/v1/volumes/$id');
+    final resp = await _client.get(url);
+    if (resp.statusCode != 200) return null;
+
+    final data = jsonDecode(resp.body);
+    return _bookFromVolume(data);
+  }
+
+  Book _bookFromVolume(Map<String, dynamic> volume) {
+    final volumeInfo = (volume['volumeInfo'] as Map?) ?? {};
+    final imageLinks = (volumeInfo['imageLinks'] as Map?) ?? {};
+
+    return Book(
+      id: (volume['id'] as String?) ?? '',
+      title: (volumeInfo['title'] as String?) ?? 'Unknown Title',
+      authors: (volumeInfo['authors'] as List?)?.cast<String>() ?? ['Unknown Author'],
+      synopsis: (volumeInfo['description'] as String?) ?? '',
+      coverUrl: (imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '').toString(),
+    );
+  }
 
   String _normalizeImageUrl(String url) {
     if (url.isEmpty) return url;

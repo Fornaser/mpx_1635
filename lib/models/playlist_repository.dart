@@ -7,8 +7,6 @@ import 'package:mpx_1635/models/playlist_model.dart';
 class PlaylistRepository {
   static const _dbName = 'playlist_database.db';
   static const _tableName = 'playlists';
-
-  // Singleton pattern
   static Database? _db;
 
   static Future<Database> _database() async {
@@ -45,16 +43,27 @@ class PlaylistRepository {
     final List<Map<String, dynamic>> maps = await db.query(_tableName);
 
     return List.generate(maps.length, (i) {
+      final mediaRaw = jsonDecode(maps[i]['media']); 
+      final List<Map<String, String>> mediaList = mediaRaw.map<Map<String, String>>((item) {
+        if (item is String) {
+          return {'id': item, 'title': item}; 
+        } else if (item is Map) {
+          return Map<String, String>.from(item);
+        } else {
+          throw Exception("Unknown media item format: $item");
+        }
+      }).toList();
+
       return Playlist(
         id: maps[i]['id'] as int?,
         title: maps[i]['title'] as String,
         mediatype: maps[i]['mediatype'] as String,
-        media: List<String>.from(jsonDecode(maps[i]['media'])), 
-        date: DateTime.parse(maps[i]['date'] as String), 
+        media: mediaList,
+        date: DateTime.parse(maps[i]['date'] as String),
       );
     });
-
   }
+
 
   static Future<void> update({required Playlist playlist}) async {
     final db = await _database();
