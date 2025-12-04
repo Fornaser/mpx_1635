@@ -60,7 +60,6 @@ class _MediaPageState extends State<MediaPage> {
         content: playlists.isEmpty
             ? const Text('No playlists available.')
             : SizedBox(
-                width: double.maxFinite,
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: playlists.length,
