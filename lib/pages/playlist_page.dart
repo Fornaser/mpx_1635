@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mpx_1635/models/playlist_model.dart';
 import 'package:mpx_1635/models/playlist_repository.dart';
 import 'library_page.dart';
-import 'package:mpx_1635/scr/sidebar/widgets/nav_bar/navigation_drawer.dart';
 
 class PlaylistPage extends StatefulWidget {
   const PlaylistPage({super.key});
@@ -97,7 +96,6 @@ class _PlaylistsPageState extends State<PlaylistPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: NavigationDrawerWidget(),
       appBar: AppBar(title: const Text("Playlists"), backgroundColor: Colors.grey),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -138,7 +136,8 @@ class _PlaylistsPageState extends State<PlaylistPage> {
                   );
 
                   if (confirm == true) {
-                    _deletePlaylist(playlist);
+                    await PlaylistRepository.delete(playlist: playlist);
+                    _loadPlaylists(); // reload the list
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Deleted "${playlist.title}"')),
                     );
