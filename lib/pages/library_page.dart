@@ -3,6 +3,9 @@ import 'package:mpx_1635/models/media_model.dart';
 import 'package:mpx_1635/models/playlist_model.dart';
 import 'package:mpx_1635/service/google_books_search_service.dart';
 import 'package:mpx_1635/widgets/book_widget.dart';
+import 'package:mpx_1635/pages/home_page.dart';
+import 'package:mpx_1635/models/playlist_repository.dart';
+import 'package:mpx_1635/pages/playlist_page.dart';
 
 class LibraryPage extends StatefulWidget {
   final Playlist playlist;
@@ -15,6 +18,7 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> {
   final SearchService _searchService = SearchService();
+  late String _title;
   bool loading = true;
   List<Book> books = [];
 
@@ -22,19 +26,19 @@ class _LibraryPageState extends State<LibraryPage> {
   void initState() {
     super.initState();
     _loadBooks();
+    _title = widget.playlist.title;
   }
+
 
   Future<void> _loadBooks() async {
     List<Book> loadedBooks = [];
 
     for (var item in widget.playlist.media) {
       try {
-        // item is a Map<String, String>
         final id = item['id'];
         final title = item['title'] ?? '';
 
         if (id != null && id.isNotEmpty) {
-          // Search by Google Books ID
           final results = await _searchService.searchBooks(title);
           final book = results.firstWhere(
             (b) => b.id == id,
@@ -54,10 +58,103 @@ class _LibraryPageState extends State<LibraryPage> {
     });
   }
 
+  Future<void> _deletePlaylist(Playlist playlist, BuildContext context) async {
+    await PlaylistRepository.delete(playlist: playlist);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => PlaylistPage(),
+      ),
+    );
+  }
+
+  Future<void> _editPlaylist(Playlist playlist, BuildContext context) async {
+    
+  }
+
+  void _showEditPlaylistDialog(Playlist playlist) async {
+    final titleController = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Playlist'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Title'),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop,
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newtitle = titleController.text.trim();
+              if (newtitle.isEmpty) return;
+              final updated = Playlist(
+                id: playlist.id,
+                date: playlist.date,
+                title: newtitle,
+                mediatype: playlist.mediatype,
+                media: playlist.media
+              );
+              await PlaylistRepository.update(playlist: updated);
+              Navigator.of(context).pop(newtitle);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if(result != null) {
+      setState(() {
+        _title = result;
+      });
+    }
+  }
+
+  void handleClick(int item) {
+    switch (item) {
+      case 0:
+        break;
+      case 1:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.playlist.title), backgroundColor: Colors.grey),
+      appBar: AppBar(
+        title: Text(_title),
+        backgroundColor: Colors.grey,
+        actions: <Widget>[
+          PopupMenuButton<int>(
+              onSelected: (item) => handleClick(item),
+              itemBuilder: (context) => [
+                PopupMenuItem<int>(
+                  value: 0, 
+                  child: Text('Edit Playlist'),
+                  onTap: (){
+                    _showEditPlaylistDialog(widget.playlist);
+                  },
+                ),
+                PopupMenuItem<int>(
+                  value: 1, 
+                  child: Text('Delete Playlist'),
+                  onTap: () {
+                    _deletePlaylist(widget.playlist, context);
+                  },
+                ),
+              ],
+            ),
+         ],
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : books.isEmpty
@@ -79,6 +176,16 @@ class _LibraryPageState extends State<LibraryPage> {
                     },
                   ),
                 ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => HomePage(),
+              ),
+            );
+          },
+      ),
     );
   }
 }
