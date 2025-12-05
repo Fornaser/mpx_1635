@@ -10,7 +10,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -21,7 +21,9 @@ class MyApp extends StatelessWidget {
       home: const MyHomePage(title: 'RemindDb'),
     );
   }
+
 }
+ 
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -37,45 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: const NavigationDrawerWidget(),
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Row(
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
-              child: const Text('Home Page'),
-            ),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(builder: (context) => MediaPage()),
-            //     );
-            //   },
-            //   child: const Text('Media Page'),
-            // ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PlaylistPage()),
-                );
-              },
-              child: const Text('Library Page'),
-            ),
-          ],
-        ),
-      ),
+    return MaterialApp(
+      title: 'RemindDB',
+      home: const HomePage()
     );
   }
 }
