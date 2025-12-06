@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:mpx_1635/models/media_model.dart';
 import 'remind_dialog.dart';
 import 'package:uuid/uuid.dart';
 import 'package:mpx_1635/app_details/change_notifiers/remind.dart';
+import 'remind_bell_overlay.dart';
+import 'package:mpx_1635/pages/media_page.dart';
 
 class RemindButton extends StatefulWidget {
   final Book book;
@@ -15,6 +18,7 @@ class RemindButton extends StatefulWidget {
 }
 
 class _RemindButtonState extends State<RemindButton> with SingleTickerProviderStateMixin {
+  final List<Timer> _timers = [];
   late final AnimationController _animController;
   late final Animation<double> _scaleAnim;
   late final Animation<double> _glowAnim;
@@ -38,6 +42,10 @@ class _RemindButtonState extends State<RemindButton> with SingleTickerProviderSt
 
   @override
   void dispose() {
+    for (final t in _timers) {
+      if (t.isActive) t.cancel();
+    }
+    _timers.clear();
     _animController.dispose();
     super.dispose();
   }
@@ -59,6 +67,36 @@ class _RemindButtonState extends State<RemindButton> with SingleTickerProviderSt
         final id = const Uuid().v4();
         widget.notifier!.addReminder(Reminder(id: id, bookId: widget.book.id, frequency: result));
       }
+
+      // Schedule a timer for the chosen duration and show a SnackBar when it fires
+      final duration = _durationFromSelection(result);
+      final timer = Timer(duration, () {
+        if (!mounted) return;
+        // Show overlay bell animation with the book title; tapping navigates to the MediaPage
+        showBellOverlay(
+          context,
+          title: widget.book.title,
+          pageBuilder: (ctx) => MediaPage(book: widget.book),
+        );
+      });
+      _timers.add(timer);
+    }
+  }
+
+  Duration _durationFromSelection(String s) {
+    switch (s) {
+      case 'In 10 seconds':
+        return const Duration(seconds: 10);
+      case 'In one minute':
+        return const Duration(minutes: 1);
+      case 'Once a day':
+        return const Duration(days: 1);
+      case 'Once a week':
+        return const Duration(days: 7);
+      case 'Once a month':
+        return const Duration(days: 30);
+      default:
+        return const Duration(seconds: 10);
     }
   }
 

@@ -50,6 +50,8 @@ class _RemindDialogState extends State<RemindDialog> {
                   value: selected,
                   onChanged: (v) => setState(() => selected = v ?? selected),
                   items: const [
+                    DropdownMenuItem(value: 'In 10 seconds', child: Text('In 10 seconds')),
+                    DropdownMenuItem(value: 'In one minute', child: Text('In one minute')),
                     DropdownMenuItem(value: 'Once a day', child: Text('Once a day')),
                     DropdownMenuItem(value: 'Once a week', child: Text('Once a week')),
                     DropdownMenuItem(value: 'Once a month', child: Text('Once a month')),
