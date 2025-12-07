@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/models/media_model.dart';
-import 'package:mpx_1635/models/playlist_model.dart';
 import 'package:mpx_1635/models/playlist_repository.dart';
 import 'package:mpx_1635/service/google_books_search_service.dart';
 import 'package:mpx_1635/app_details/constants.dart';
 import 'package:mpx_1635/widgets/remind_button.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 class MediaPage extends StatefulWidget {
   final Book book;
@@ -51,7 +51,6 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  /// Fetch full book details by Google Books ID
   Future<void> _loadBookDetails() async {
     try {
       final book = await _searchService.fetchBookById(fullBook.id);
@@ -125,7 +124,6 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
     }
     if (!mounted) return;
 
-    // After the animation, show a dismissible overlay form for reminder options.
     await showDialog<String?>(
       context: context,
       barrierDismissible: true,
@@ -195,10 +193,11 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(fullBook.title), backgroundColor: Colors.grey),
+      appBar: AppBar(title: Text("RemindDB"), backgroundColor: Colors.grey),
       body: loading
       ? Center(child: Image.asset('RemindDbFull.png', height: 96))
       : SingleChildScrollView(
@@ -256,8 +255,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 16),
-                    Text(fullBook.synopsis,
-                        style: const TextStyle(fontSize: 16)),
+                    Html(data: fullBook.synopsis),
                   ],
                 ),
               ),

@@ -4,13 +4,14 @@ import 'package:mpx_1635/models/media_model.dart';
 
 class SearchService {
   final http.Client _client;
+
   SearchService({http.Client? client}) : _client = client ?? http.Client();
 
   Future<List<Book>> searchBooks(String query) async {
     if (query.trim().isEmpty) return [];
 
     final url = Uri.parse(
-      'https://www.googleapis.com/books/v1/volumes?q=${Uri.encodeQueryComponent(query)}&maxResults=39',
+      'https://www.googleapis.com/books/v1/volumes?q=${Uri.encodeQueryComponent(query)}&maxResults=40',
     );
 
     final resp = await _client.get(url);
@@ -19,15 +20,21 @@ class SearchService {
     final data = jsonDecode(resp.body);
     final items = (data['items'] as List?) ?? [];
 
-    return items.map<Book>((raw) {
+    // Map and filter nulls
+    final books = items.map<Book?>((raw) {
       final volumeInfo = (raw['volumeInfo'] as Map?) ?? {};
       final imageLinks = (volumeInfo['imageLinks'] as Map?) ?? {};
-      
-      // Extract cover URL using OpenLibrary format when industryIdentifiers exist
+
+      // Skip books without title or description
+      final title = volumeInfo['title'] as String?;
+      final description = volumeInfo['description'] as String?;
+      if (title == null || description == null) return null;
+
+      final authors = (volumeInfo['authors'] as List?)?.cast<String>() ?? ['Unknown Author'];
+
+      // Try OpenLibrary cover
       String coverUrl = '';
       final identifiers = (volumeInfo['industryIdentifiers'] as List?) ?? [];
-      
-      // Try to find ISBN for OpenLibrary cover
       for (var identifier in identifiers) {
         final type = identifier['type'] as String?;
         final isbn = identifier['identifier'] as String?;
@@ -36,32 +43,41 @@ class SearchService {
           break;
         }
       }
-      
-      // Fallback to Google's thumbnail if no ISBN found
+
+      // fallback to Google thumbnail
       if (coverUrl.isEmpty) {
-        final googleThumb = (imageLinks['thumbnail'] as String?) ?? 
-                           (imageLinks['smallThumbnail'] as String?) ?? '';
-        coverUrl = _normalizeImageUrl(googleThumb);
+        coverUrl = (imageLinks['thumbnail'] as String?) ??
+                   (imageLinks['smallThumbnail'] as String?) ?? '';
       }
+
+      if (coverUrl.isEmpty) return null; // skip if no cover
 
       return Book(
         id: (raw['id'] as String?) ?? '',
-        title: (volumeInfo['title'] as String?) ?? 'Unknown Title',
-        authors: (volumeInfo['authors'] is List)
-            ? List<String>.from(volumeInfo['authors'])
-            : <String>['Unknown Author'],
-        synopsis: (volumeInfo['description'] as String?) ?? '',
-        coverUrl: coverUrl,
+        title: title,
+        authors: authors,
+        synopsis: description,
+        coverUrl: _normalizeImageUrl(coverUrl),
       );
-    }).toList();
+    }).whereType<Book>().toList(); // remove nulls
+
+    return books;
   }
-  
+
+  String _normalizeImageUrl(String url) {
+    if (url.isEmpty) return url;
+    if (url.startsWith('http://')) {
+      return 'https://${url.substring(7)}';
+    }
+    return url;
+  }
+
   Future<Book?> fetchBookById(String id) async {
     final url = Uri.parse('https://www.googleapis.com/books/v1/volumes/$id');
     final resp = await _client.get(url);
     if (resp.statusCode != 200) return null;
 
-    final data = jsonDecode(resp.body);
+    final data = jsonDecode(resp.body) as Map<String, dynamic>;
     return _bookFromVolume(data);
   }
 
@@ -69,21 +85,17 @@ class SearchService {
     final volumeInfo = (volume['volumeInfo'] as Map?) ?? {};
     final imageLinks = (volumeInfo['imageLinks'] as Map?) ?? {};
 
+    final title = volumeInfo['title'] as String? ?? 'Unknown Title';
+    final description = volumeInfo['description'] as String? ?? '';
+    final authors = (volumeInfo['authors'] as List?)?.cast<String>() ?? ['Unknown Author'];
+    final coverUrl = (imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '').toString();
+
     return Book(
       id: (volume['id'] as String?) ?? '',
-      title: (volumeInfo['title'] as String?) ?? 'Unknown Title',
-      authors: (volumeInfo['authors'] as List?)?.cast<String>() ?? ['Unknown Author'],
-      synopsis: (volumeInfo['description'] as String?) ?? '',
-      coverUrl: (imageLinks['thumbnail'] ?? imageLinks['smallThumbnail'] ?? '').toString(),
+      title: title,
+      authors: authors,
+      synopsis: description,
+      coverUrl: _normalizeImageUrl(coverUrl),
     );
-  }
-
-  String _normalizeImageUrl(String url) {
-    if (url.isEmpty) return url;
-    // Force https only; avoid modifying query params (zoom/etc) to reduce web image failures (statusCode 0)
-    if (url.startsWith('http://')) {
-      return 'https://${url.substring(7)}';
-    }
-    return url;
   }
 }
