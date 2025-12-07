@@ -65,43 +65,53 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return BasePage(
       title: 'Home Page',
-      onSearch: _handleSearch,
-      child: Scaffold(
-        body: loading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: featuredSections.entries.map((entry) {
-                    final sectionTitle = entry.key;
-                    final books = entry.value;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            sectionTitle,
-                            style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 85, 85, 85)),
-                          ),
-                          const SizedBox(height: 12),
-                          BookCarousel(
-                            books: books,
-                            minCardWidth: 180,
-                            maxCardWidth: 200,
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+      titleWidget: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Image.asset(
+          'RemindDbFull.png',
+          height: 56,
+          fit: BoxFit.contain,
+          semanticLabel: 'RemindDb logo',
+        ),
       ),
+      appBarColor: const Color.fromARGB(255, 112, 171, 153),
+            backgroundColor: const Color.fromARGB(255, 188, 212, 205),
+
+        onSearch: _handleSearch,
+        child: loading
+          ? Center(child: Image.asset('RemindDbFull.png', height: 96))
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: featuredSections.entries.map((entry) {
+                  final sectionTitle = entry.key;
+                  final books = entry.value;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sectionTitle,
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 85, 85, 85)),
+                        ),
+                        const SizedBox(height: 12),
+                        BookCarousel(
+                          books: books,
+                          minCardWidth: 180,
+                          maxCardWidth: 200,
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
     );
   }
 }

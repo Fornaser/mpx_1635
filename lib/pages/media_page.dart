@@ -200,7 +200,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
     return Scaffold(
       appBar: AppBar(title: Text(fullBook.title), backgroundColor: Colors.grey),
       body: loading
-      ? const Center(child: CircularProgressIndicator())
+      ? Center(child: Image.asset('RemindDbFull.png', height: 96))
       : SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Row(

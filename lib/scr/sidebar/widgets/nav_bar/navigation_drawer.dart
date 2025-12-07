@@ -15,7 +15,7 @@ class NavigationDrawerWidget extends StatelessWidget {
 
         return Drawer(
             child: Container(
-                color: const Color(0xFF262AAA),
+                color: const Color.fromARGB(255, 85, 136, 121),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -23,16 +23,18 @@ class NavigationDrawerWidget extends StatelessWidget {
                             padding: padding.add(const EdgeInsets.symmetric(vertical: 24)),
                             child: Row(
                                 children: [
-                                    const CircleAvatar(
-                                        radius: 20,
-                                        backgroundImage: NetworkImage(
-                                            'https://avatars.githubusercontent.com/u/160686513?v=4',
-                                        ),
-                                    ),
+                                                                        Padding(
+                                                                            padding: const EdgeInsets.only(top: 6.0),
+                                                                            child: CircleAvatar(
+                                                                                radius: 30,
+                                                                                backgroundColor: Colors.transparent,
+                                                                                backgroundImage: const AssetImage('Remind_DB_logo.png'),
+                                                                            ),
+                                                                        ),
                                     const SizedBox(width: 16),
                                     if (!isCollapsed)
                                         const Text(
-                                            'Mpx',
+                                            'RemindDB',
                                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                                         ),
                                 ],
@@ -54,7 +56,7 @@ class NavigationDrawerWidget extends StatelessWidget {
                         _buildItem(
                             context,
                             icon: Icons.home,
-                            label: 'Playlists',
+                            label: 'Saves',
                             onTap: () {
                                 Navigator.pop(context);
                                 Navigator.pushReplacement(

@@ -45,12 +45,14 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   Widget build(BuildContext context) {
     return BasePage(
       title: 'Search Results',
+      appBarColor: const Color.fromARGB(255, 112, 171, 153),
+      backgroundColor: const Color.fromARGB(255, 188, 212, 205),
       onSearch: _handleSearch,
       child: FutureBuilder<List<Book>>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: Image.asset('RemindDbFull.png', height: 96));
           }
           if (snapshot.hasError) {
             return Center(

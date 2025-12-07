@@ -155,8 +155,8 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
          ],
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
+        body: loading
+          ? Center(child: Image.asset('RemindDbFull.png', height: 96))
           : books.isEmpty
               ? const Center(child: Text("No books in this playlist."))
               : Padding(

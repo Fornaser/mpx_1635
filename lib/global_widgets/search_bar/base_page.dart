@@ -6,12 +6,18 @@ class BasePage extends StatelessWidget {
   final Widget child;
   final Function(String) onSearch;
   final String title;
+  final Widget? titleWidget;
+  final Color? appBarColor;
+  final Color? backgroundColor;
 
   const BasePage({
     super.key,
     required this.child,
     required this.onSearch,
     required this.title,
+    this.titleWidget,
+    this.appBarColor,
+    this.backgroundColor,
   });
 
   @override
@@ -19,13 +25,14 @@ class BasePage extends StatelessWidget {
     return Scaffold(
       drawer: const NavigationDrawerWidget(),
       appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: titleWidget ?? Text(title),
+        backgroundColor: appBarColor ?? Theme.of(context).colorScheme.inversePrimary,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: GlobalSearchBar(onSearch: onSearch),
         ),
       ),
+      backgroundColor: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
       body: child,
     );
   }

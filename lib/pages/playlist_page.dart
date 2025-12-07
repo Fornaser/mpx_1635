@@ -99,8 +99,8 @@ class _PlaylistsPageState extends State<PlaylistPage> {
     return Scaffold(
       drawer: NavigationDrawerWidget(),
       appBar: AppBar(title: const Text("Playlists"), backgroundColor: Colors.grey),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
+        body: loading
+          ? Center(child: Image.asset('RemindDbFull.png', height: 96))
           : playlists.isEmpty
               ? const Center(child: Text("No playlists found."))
               : ListView.builder(
