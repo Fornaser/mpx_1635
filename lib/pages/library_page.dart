@@ -4,9 +4,8 @@ import 'package:mpx_1635/models/playlist_model.dart';
 import 'package:mpx_1635/service/google_books_search_service.dart';
 import 'package:mpx_1635/widgets/book_widget.dart';
 import 'package:mpx_1635/pages/home_page.dart';
-import 'package:mpx_1635/models/playlist_repository.dart';
-import 'package:mpx_1635/pages/playlist_page.dart';
 import 'package:mpx_1635/pages/media_page.dart';
+import 'package:mpx_1635/models/playlist_repository.dart';
 
 class LibraryPage extends StatefulWidget {
   final Playlist playlist;
@@ -19,187 +18,211 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> {
   final SearchService _searchService = SearchService();
+
   late String _title;
-  bool loading = true;
-  List<Book> books = [];
+  bool _loading = true;
+  bool _editMode = false;
+  List<Book> _books = [];
+  List<Map<String, String>> _stagedMedia = [];
 
   @override
   void initState() {
     super.initState();
-    _loadBooks();
     _title = widget.playlist.title;
+    _stagedMedia = List<Map<String, String>>.from(widget.playlist.media);
+    _loadBooks();
+
   }
 
+  
   Future<void> _loadBooks() async {
-    List<Book> loadedBooks = [];
-
-    for (var item in widget.playlist.media) {
+    List<Book> resultBooks = [];
+    for (var item in _stagedMedia) { 
       try {
-        final id = item['id'];
-        final title = item['title'] ?? '';
-
+        final id = item["id"];
+        final title = item["title"] ?? "";
         if (id != null && id.isNotEmpty) {
           final results = await _searchService.searchBooks(title);
-          final book = results.firstWhere(
+          final match = results.firstWhere(
             (b) => b.id == id,
-            orElse: () =>
-                results.isNotEmpty ? results[0] : Book(id: id, title: title, authors: [], synopsis: '', coverUrl: ''),
+            orElse: () => results.isNotEmpty
+                ? results.first
+                : Book(id: id, title: title, authors: [], synopsis: "", coverUrl: ""),
           );
-          loadedBooks.add(book);
+          resultBooks.add(match);
         }
       } catch (e) {
-        print("Error loading book ${item['title']}: $e");
+        print("Error loading book ${item['title']} → $e");
       }
     }
 
     if (!mounted) return;
     setState(() {
-      books = loadedBooks;
-      loading = false;
+      _books = resultBooks;
+      _loading = false;
     });
   }
 
-  Future<void> _deletePlaylist(Playlist playlist, BuildContext context) async {
-    await PlaylistRepository.delete(playlist: playlist);
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlaylistPage()));
-  }
 
-  Future<void> _deleteBookFromPlaylist(Book book) async {
+  void _deleteBook(Book book) {
     setState(() {
-      books.removeWhere((b) => b.id == book.id);
+      _books.removeWhere((b) => b.id == book.id);
+      _stagedMedia.removeWhere((item) => item['id'] == book.id);
     });
-
-    widget.playlist.media.removeWhere((item) => item['id'] == book.id);
-    await PlaylistRepository.update(playlist: widget.playlist);
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("${book.title} removed from playlist")),
     );
   }
 
-  void _showEditPlaylistDialog(Playlist playlist) async {
-    final titleController = TextEditingController();
-    final result = await showDialog<String>(
+
+  Future<void> _saveChanges() async {
+    final updatedPlaylist = Playlist(
+      id: widget.playlist.id,
+      title: _title,
+      date: widget.playlist.date,
+      mediatype: widget.playlist.mediatype,
+      media: _stagedMedia,
+    );
+
+    await PlaylistRepository.update(playlist: updatedPlaylist);
+
+    setState(() => _editMode = false);
+
+    Navigator.pop(context, updatedPlaylist); 
+  }
+
+  Future<void> _deletePlaylist() async {
+    await PlaylistRepository.delete(playlist: widget.playlist);
+    if (!mounted) return;
+    Navigator.pop(context, null); 
+  }
+
+
+  Future<void> _editTitle() async {
+    final controller = TextEditingController(text: _title);
+    final newTitle = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Playlist'),
+        title: const Text("Edit Playlist Title"),
         content: TextField(
-          controller: titleController,
-          decoration: const InputDecoration(labelText: 'Title'),
+          controller: controller,
+          decoration: const InputDecoration(labelText: "New Title"),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
-            child: const Text('Save'),
-            onPressed: () async {
-              final newTitle = titleController.text.trim();
-              if (newTitle.isEmpty) return;
-
-              final updatedPlaylist = Playlist(
-                id: playlist.id,
-                date: playlist.date,
-                title: newTitle,
-                mediatype: playlist.mediatype,
-                media: playlist.media,
-              );
-
-              await PlaylistRepository.update(playlist: updatedPlaylist);
-              Navigator.pop(context, newTitle);
-            },
-          )
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text("Save"),
+          ),
         ],
       ),
     );
-    if (result != null) {
-      setState(() => _title = result);
+
+    if (newTitle != null && newTitle.isNotEmpty) {
+      final updatedPlaylist = Playlist(
+        id: widget.playlist.id,
+        date: widget.playlist.date,
+        title: newTitle,
+        mediatype: widget.playlist.mediatype,
+        media: widget.playlist.media,
+      );
+
+      await PlaylistRepository.update(playlist: updatedPlaylist);
+
+      setState(() => _title = newTitle);
+      // Return updated playlist to PlaylistPage
+      Navigator.pop(context, updatedPlaylist);
     }
+  }
+
+  void _toggleEditMode() {
+    setState(() => _editMode = !_editMode);
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    int columns = size.width ~/ 180; 
+    columns = columns.clamp(2, 8);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
-        bottomOpacity: 10,
-        shadowColor: Colors.black,
-        surfaceTintColor: Colors.blueAccent,
         actions: [
           PopupMenuButton<int>(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                  value: 0,
-                  child: const Text("Edit Playlist"),
-                  onTap: () => _showEditPlaylistDialog(widget.playlist)),
-              PopupMenuItem(
-                  value: 1,
-                  child: const Text("Delete Playlist"),
-                  onTap: () => _deletePlaylist(widget.playlist, context)),
+            onSelected: (value) {
+              if (value == 0) _editTitle();
+              if (value == 1) _deletePlaylist();
+              if (value == 2) _toggleEditMode();
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(value: 0, child: Text("Edit Title")),
+              const PopupMenuItem(value: 1, child: Text("Delete Playlist")),
+              const PopupMenuItem(value: 2, child: Text("Edit Playlist")),
             ],
           ),
         ],
       ),
-      body: loading
+      floatingActionButton: _editMode
+          ? FloatingActionButton.extended(
+              onPressed: _saveChanges,
+              icon: const Icon(Icons.close),
+              label: const Text("Done Editing"),
+            )
+          : FloatingActionButton.extended(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage()),
+              ),
+              icon: const Icon(Icons.add),
+              label: const Text("Add Book"),
+            ),
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : books.isEmpty
+          : _books.isEmpty
               ? const Center(child: Text("No books in this playlist."))
-              : LayoutBuilder(
-                  builder: (context, constraints) {
-                    final double width = constraints.maxWidth;
-                    int columns = (width / 180).floor(); 
-                    columns = columns.clamp(2, 8); 
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.45, 
-                      ),
-                      itemCount: books.length,
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            InkWell(
-                              onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          MediaPage(book: books[index]))),
-                              child: BookCard(book: books[index]),
+              : Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.48,
+                    ),
+                    itemCount: _books.length,
+                    itemBuilder: (context, i) {
+                      final book = _books[i];
+                      return Stack(
+                        children: [
+                          InkWell(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => MediaPage(book: book)),
                             ),
+                            child: BookCard(book: book),
+                          ),
+                          if (_editMode)
                             Positioned(
-                              right: 4,
-                              top: 4,
+                              right: 0,
+                              top: 0,
                               child: GestureDetector(
-                                onTap: () =>
-                                    _deleteBookFromPlaylist(books[index]),
+                                onTap: () => _deleteBook(book),
                                 child: Container(
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.black54,
                                     shape: BoxShape.circle,
                                   ),
                                   padding: const EdgeInsets.all(4),
-                                  child: const Icon(Icons.close,
-                                      size: 16, color: Colors.white),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 16),
                                 ),
                               ),
                             ),
-                          ],
-                        );
-                      },
-                    );
-                  },
+                        ],
+                      );
+                    },
+                  ),
                 ),
-
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => HomePage()),
-        ),
-      ),
     );
   }
 }

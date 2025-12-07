@@ -14,6 +14,7 @@ class PlaylistPage extends StatefulWidget {
 class _PlaylistsPageState extends State<PlaylistPage> {
   List<Playlist> playlists = [];
   bool loading = true;
+  bool _editMode = false; 
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _PlaylistsPageState extends State<PlaylistPage> {
 
   void _showAddPlaylistDialog() {
     final titleController = TextEditingController();
-    String selectedMediaType = 'Book'; 
+    String selectedMediaType = 'Books';
 
     showDialog(
       context: context,
@@ -62,20 +63,15 @@ class _PlaylistsPageState extends State<PlaylistPage> {
               onChanged: (value) {
                 if (value != null) selectedMediaType = value;
               },
-              decoration: const InputDecoration(labelText: 'Media Type'),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               final title = titleController.text.trim();
               if (title.isEmpty) return;
-
               final newPlaylist = Playlist(
                 date: DateTime.now(),
                 title: title,
@@ -94,85 +90,97 @@ class _PlaylistsPageState extends State<PlaylistPage> {
     );
   }
 
+  void _toggleEditMode() {
+    setState(() => _editMode = !_editMode);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: NavigationDrawerWidget(),
       appBar: AppBar(
         title: const Text("Playlists"),
-        // actions: [
-        //   PopupMenuButton<int>(
-        //     itemBuilder: (context) => [
-        //       PopupMenuItem(
-        //           value: 1,
-        //           child: const Text("Delete Playlist"),
-        //           onTap: () => _deletePlaylist(widget.playlist, context)),
-        //       ],
-        //     ),
-        //   ],
+        actions: [
+           PopupMenuButton<int>(
+           onSelected: (value) {
+            if(value == 0) _toggleEditMode();
+           },
+           itemBuilder: (_) => [
+            const PopupMenuItem(value: 0, child: Text("Edit Library"),)
+           ],
+          ),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : playlists.isEmpty
               ? const Center(child: Text("No playlists found."))
               : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: playlists.length,
-        itemBuilder: (context, index) {
-          final playlist = playlists[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              title: Text(playlist.title),
-              subtitle: Text(
-                playlist.mediatype + " • " +
-                playlist.date.toLocal().toIso8601String().split('T').first,
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Playlist'),
-                      content: Text('Are you sure you want to delete "${playlist.title}"?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: playlists.length,
+                  itemBuilder: (context, index) {
+                    final playlist = playlists[index];
+                    return Stack(
+                      children: [
+                        Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            title: Text(playlist.title),
+                            subtitle: Text(
+                              '${playlist.mediatype} • ${playlist.date.toLocal().toIso8601String().split('T').first}',
+                            ),
+                            onTap: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => LibraryPage(playlist: playlist),
+                                ),
+                              );
+                              if (result != null && result is Playlist) {
+                                setState(() {
+                                  final idx = playlists.indexWhere((p) => p.id == result.id);
+                                  if (idx != -1) playlists[idx] = result;
+                                });
+                              }
+                            },
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete'),
-                        ),
+                        if (_editMode)
+                          Positioned(
+                            right: 10,
+                            top: 0,
+                            bottom: 0,
+                            child: GestureDetector(
+                              onTap: () => _deletePlaylist(playlist),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                child: const Icon(Icons.delete, color: Colors.white),
+                              ),
+                            ),
+                          ),
                       ],
-                    ),
-                  );
-
-                  if (confirm == true) {
-                    _deletePlaylist(playlist);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Deleted "${playlist.title}"')),
                     );
-                  }
-                },
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LibraryPage(playlist: playlist),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPlaylistDialog,
-        child: const Icon(Icons.add),
-      ),
+                  },
+                ),
+      floatingActionButton: _editMode
+        ? FloatingActionButton.extended(
+            onPressed: () {
+              setState(() {
+                _editMode = false; 
+              });
+            },
+            icon: const Icon(Icons.close),
+            label: const Text("Done Editing"),
+          )
+        : FloatingActionButton.extended(
+            onPressed: _showAddPlaylistDialog,
+            icon: const Icon(Icons.add),
+            label: const Text("Create New Playlist"),
+          )
     );
   }
 }
