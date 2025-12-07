@@ -18,11 +18,12 @@ class _HomePageState extends State<HomePage> {
   Map<String, List<Book>> featuredSections = {};
 
   final Map<String, String> sections = {
-    "Popular": "bestsellers",
-    "Fantasy Picks": "fantasy",
-    "Romance Picks": "romance",
-    "Mystery Picks": "mystery",
-  };
+  "Best Fiction Picks": "subject:Fiction",
+  "Fantasy Picks": "subject:Fantasy",
+  "Romance Picks": "subject:Romance",
+  "Mystery Picks": "subject:Mystery",
+};
+
 
   @override
   void initState() {

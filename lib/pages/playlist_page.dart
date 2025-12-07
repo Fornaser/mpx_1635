@@ -98,7 +98,19 @@ class _PlaylistsPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: NavigationDrawerWidget(),
-      appBar: AppBar(title: const Text("Playlists"), backgroundColor: Colors.grey),
+      appBar: AppBar(
+        title: const Text("Playlists"),
+        // actions: [
+        //   PopupMenuButton<int>(
+        //     itemBuilder: (context) => [
+        //       PopupMenuItem(
+        //           value: 1,
+        //           child: const Text("Delete Playlist"),
+        //           onTap: () => _deletePlaylist(widget.playlist, context)),
+        //       ],
+        //     ),
+        //   ],
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : playlists.isEmpty

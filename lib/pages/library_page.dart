@@ -6,6 +6,7 @@ import 'package:mpx_1635/widgets/book_widget.dart';
 import 'package:mpx_1635/pages/home_page.dart';
 import 'package:mpx_1635/models/playlist_repository.dart';
 import 'package:mpx_1635/pages/playlist_page.dart';
+import 'package:mpx_1635/pages/media_page.dart';
 
 class LibraryPage extends StatefulWidget {
   final Playlist playlist;
@@ -29,7 +30,6 @@ class _LibraryPageState extends State<LibraryPage> {
     _title = widget.playlist.title;
   }
 
-
   Future<void> _loadBooks() async {
     List<Book> loadedBooks = [];
 
@@ -42,7 +42,8 @@ class _LibraryPageState extends State<LibraryPage> {
           final results = await _searchService.searchBooks(title);
           final book = results.firstWhere(
             (b) => b.id == id,
-            orElse: () => results.isNotEmpty ? results[0] : Book(id: id, title: title, authors: [], synopsis: '', coverUrl: ''),
+            orElse: () =>
+                results.isNotEmpty ? results[0] : Book(id: id, title: title, authors: [], synopsis: '', coverUrl: ''),
           );
           loadedBooks.add(book);
         }
@@ -60,15 +61,20 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Future<void> _deletePlaylist(Playlist playlist, BuildContext context) async {
     await PlaylistRepository.delete(playlist: playlist);
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) => PlaylistPage(),
-      ),
-    );
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => PlaylistPage()));
   }
 
-  Future<void> _editPlaylist(Playlist playlist, BuildContext context) async {
-    
+  Future<void> _deleteBookFromPlaylist(Book book) async {
+    setState(() {
+      books.removeWhere((b) => b.id == book.id);
+    });
+
+    widget.playlist.media.removeWhere((item) => item['id'] == book.id);
+    await PlaylistRepository.update(playlist: widget.playlist);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("${book.title} removed from playlist")),
+    );
   }
 
   void _showEditPlaylistDialog(Playlist playlist) async {
@@ -77,53 +83,37 @@ class _LibraryPageState extends State<LibraryPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Playlist'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            const SizedBox(height: 16),
-          ],
+        content: TextField(
+          controller: titleController,
+          decoration: const InputDecoration(labelText: 'Title'),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop,
-            child: const Text('Cancel'),
-          ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
+            child: const Text('Save'),
             onPressed: () async {
-              final newtitle = titleController.text.trim();
-              if (newtitle.isEmpty) return;
-              final updated = Playlist(
+              final newTitle = titleController.text.trim();
+              if (newTitle.isEmpty) return;
+
+              final updatedPlaylist = Playlist(
                 id: playlist.id,
                 date: playlist.date,
-                title: newtitle,
+                title: newTitle,
                 mediatype: playlist.mediatype,
-                media: playlist.media
+                media: playlist.media,
               );
-              await PlaylistRepository.update(playlist: updated);
-              Navigator.of(context).pop(newtitle);
+
+              await PlaylistRepository.update(playlist: updatedPlaylist);
+              Navigator.pop(context, newTitle);
             },
-            child: const Text('Save'),
-          ),
+          )
         ],
       ),
     );
-    if(result != null) {
-      setState(() {
-        _title = result;
-      });
-    }
-  }
-
-  void handleClick(int item) {
-    switch (item) {
-      case 0:
-        break;
-      case 1:
-        break;
+    if (result != null) {
+      setState(() => _title = result);
     }
   }
 
@@ -132,59 +122,83 @@ class _LibraryPageState extends State<LibraryPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
-        backgroundColor: Colors.grey,
-        actions: <Widget>[
+        bottomOpacity: 10,
+        shadowColor: Colors.black,
+        surfaceTintColor: Colors.blueAccent,
+        actions: [
           PopupMenuButton<int>(
-              onSelected: (item) => handleClick(item),
-              itemBuilder: (context) => [
-                PopupMenuItem<int>(
-                  value: 0, 
-                  child: Text('Edit Playlist'),
-                  onTap: (){
-                    _showEditPlaylistDialog(widget.playlist);
-                  },
-                ),
-                PopupMenuItem<int>(
-                  value: 1, 
-                  child: Text('Delete Playlist'),
-                  onTap: () {
-                    _deletePlaylist(widget.playlist, context);
-                  },
-                ),
-              ],
-            ),
-         ],
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                  value: 0,
+                  child: const Text("Edit Playlist"),
+                  onTap: () => _showEditPlaylistDialog(widget.playlist)),
+              PopupMenuItem(
+                  value: 1,
+                  child: const Text("Delete Playlist"),
+                  onTap: () => _deletePlaylist(widget.playlist, context)),
+            ],
+          ),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : books.isEmpty
               ? const Center(child: Text("No books in this playlist."))
-              : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.55,
-                    ),
-                    itemCount: books.length,
-                    itemBuilder: (context, index) {
-                      return BookCard(
-                        book: books[index],
-                      );
-                    },
-                  ),
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double width = constraints.maxWidth;
+                    int columns = (width / 180).floor(); 
+                    columns = columns.clamp(2, 8); 
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.45, 
+                      ),
+                      itemCount: books.length,
+                      itemBuilder: (context, index) {
+                        return Stack(
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          MediaPage(book: books[index]))),
+                              child: BookCard(book: books[index]),
+                            ),
+                            Positioned(
+                              right: 4,
+                              top: 4,
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _deleteBookFromPlaylist(books[index]),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.close,
+                                      size: 16, color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                 ),
+
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (BuildContext context) => HomePage(),
-              ),
-            );
-          },
+        child: const Icon(Icons.add),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => HomePage()),
+        ),
       ),
     );
   }
