@@ -69,8 +69,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
           return LayoutBuilder(
             builder: (context, constraints) {
-              // Match home page sizing feel
-              const minCardWidth = 180.0;
+
               const maxCardWidth = 200.0;
               final width = constraints.maxWidth;
               int crossAxisCount = (width / maxCardWidth).floor();

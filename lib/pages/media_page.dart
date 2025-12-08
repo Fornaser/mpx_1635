@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mpx_1635/models/media_model.dart';
 import 'package:mpx_1635/models/playlist_repository.dart';
 import 'package:mpx_1635/service/google_books_search_service.dart';
-import 'package:mpx_1635/app_details/constants.dart';
 import 'package:mpx_1635/widgets/remind_button.dart';
 import 'package:flutter_html/flutter_html.dart';
 
