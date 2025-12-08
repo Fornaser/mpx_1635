@@ -109,16 +109,32 @@ class _LibraryPageState extends State<LibraryPage> {
           decoration: const InputDecoration(labelText: "New Title"),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text("Save")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text("Save"),
+          ),
         ],
       ),
     );
 
     if (newTitle != null && newTitle.isNotEmpty) {
       setState(() => _title = newTitle);
+      final updatedPlaylist = Playlist(
+        id: widget.playlist.id,
+        title: newTitle,
+        date: widget.playlist.date,
+        mediatype: widget.playlist.mediatype,
+        media: _stagedMedia, 
+      );
+
+      await PlaylistRepository.update(playlist: updatedPlaylist);
     }
   }
+
 
   void _toggleEditMode() {
     setState(() => _editMode = !_editMode);

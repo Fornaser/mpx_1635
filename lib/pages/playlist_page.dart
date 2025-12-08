@@ -38,7 +38,6 @@ class _PlaylistsPageState extends State<PlaylistPage> {
 
   void _showAddPlaylistDialog() {
     final titleController = TextEditingController();
-    String selectedMediaType = 'Book';
 
     showDialog(
       context: context,
@@ -52,18 +51,6 @@ class _PlaylistsPageState extends State<PlaylistPage> {
               decoration: const InputDecoration(labelText: 'Title'),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: selectedMediaType,
-              items: ['Book', 'Movie', 'TV Show']
-                  .map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) selectedMediaType = value;
-              },
-            ),
           ],
         ),
         actions: [
@@ -75,7 +62,7 @@ class _PlaylistsPageState extends State<PlaylistPage> {
               final newPlaylist = Playlist(
                 date: DateTime.now(),
                 title: title,
-                mediatype: selectedMediaType,
+                mediatype: "Books",
                 media: [],
               );
 
