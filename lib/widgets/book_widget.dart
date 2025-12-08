@@ -10,7 +10,7 @@ class BookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final coverHeight = constraints.maxHeight * 0.70; // 70% of the tile
+        final coverHeight = constraints.maxHeight * 0.70; 
         final coverWidth = constraints.maxWidth;
 
         return Card(

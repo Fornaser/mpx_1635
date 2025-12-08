@@ -28,7 +28,6 @@ class _RemindDialogState extends State<RemindDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top-left X button
               Row(
                 children: [
                   IconButton(
