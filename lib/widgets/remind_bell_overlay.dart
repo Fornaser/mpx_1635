@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Shows a temporary bell notification overlay in the top-right corner.
 void showBellOverlay(BuildContext context, {bool persistUntilTap = true, Duration duration = const Duration(seconds: 3), String? title, VoidCallback? onTap, WidgetBuilder? pageBuilder}) {
   final overlay = Overlay.of(context);
-  if (overlay == null) return;
+  
 
   // Use a guard to avoid double-removal causing errors
   bool removed = false;

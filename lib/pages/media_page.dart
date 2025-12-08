@@ -19,8 +19,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
   bool loading = true;
   late Book fullBook;
   late final AnimationController _animController;
-  late final Animation<double> _scaleAnim;
-  late final Animation<double> _glowAnim;
+
 
   @override
   void initState() {
@@ -32,16 +31,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
       duration: const Duration(milliseconds: 600),
     );
 
-    _scaleAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.12).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.12, end: 0.96).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 0.96, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
-    ]).animate(_animController);
 
-    _glowAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 50),
-    ]).animate(_animController);
   }
 
   @override
@@ -113,82 +103,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
     );
   }
 
-  void _handleRemindTap() async {
-    if (_animController.isAnimating) return;
-    try {
-      await _animController.forward(from: 0.0);
-    } catch (_) {
-    }
-    if (!mounted) return;
 
-    await showDialog<String?>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        String selected = 'Once a day';
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: StatefulBuilder(builder: (context, setState) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Top-left X button
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text('Remind me in:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: DropdownButtonFormField<String>(
-                      value: selected,
-                      onChanged: (v) => setState(() => selected = v ?? selected),
-                      items: const [
-                        DropdownMenuItem(value: 'Once a day', child: Text('Once a day')),
-                        DropdownMenuItem(value: 'Once a week', child: Text('Once a week')),
-                        DropdownMenuItem(value: 'Once a month', child: Text('Once a month')),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop(selected);
-                        },
-                        child: const Text('Confirm'),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
