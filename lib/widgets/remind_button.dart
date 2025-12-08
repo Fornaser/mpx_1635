@@ -62,17 +62,15 @@ class _RemindButtonState extends State<RemindButton> with SingleTickerProviderSt
     );
 
     if (result != null) {
-      // Add to notifier if provided (simple in-memory add)
       if (widget.notifier != null) {
         final id = const Uuid().v4();
         widget.notifier!.addReminder(Reminder(id: id, bookId: widget.book.id, frequency: result));
       }
 
-      // Schedule a timer for the chosen duration and show a SnackBar when it fires
+      // Schedule a timer
       final duration = _durationFromSelection(result);
       final timer = Timer(duration, () {
         if (!mounted) return;
-        // Show overlay bell animation with the book title; tapping navigates to the MediaPage
         showBellOverlay(
           context,
           title: widget.book.title,

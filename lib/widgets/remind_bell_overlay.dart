@@ -99,11 +99,9 @@ void showBellOverlay(BuildContext context, {bool persistUntilTap = true, Duratio
   try {
     overlay.insert(entry);
   } catch (_) {
-    // If insertion fails, bail out gracefully
     return;
   }
 
-  // If the caller doesn't want the bell to persist until tap, remove after [duration].
   if (!persistUntilTap) {
     Future.delayed(duration, () {
       if (removed) return;
