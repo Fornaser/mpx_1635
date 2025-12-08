@@ -1,90 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:mpx_1635/models/playlist_model.dart';
-import 'package:mpx_1635/models/playlist_repository.dart';
-import 'library_page.dart';
+import 'package:mpx_1635/pages/library_page.dart';
 import 'package:mpx_1635/scr/sidebar/widgets/nav_bar/navigation_drawer.dart';
+import 'package:mpx_1635/viewmodels/playlist_viewmodel.dart';
+import 'package:provider/provider.dart';
 
-class PlaylistPage extends StatefulWidget {
+class PlaylistPage extends StatelessWidget {
   const PlaylistPage({super.key});
 
   @override
-  State<PlaylistPage> createState() => _PlaylistsPageState();
-}
-
-class _PlaylistsPageState extends State<PlaylistPage> {
-  List<Playlist> playlists = [];
-  bool loading = true;
-  bool _editMode = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPlaylists();
-  }
-
-  Future<void> _loadPlaylists() async {
-    setState(() => loading = true);
-    final fetched = await PlaylistRepository.getPlaylists();
-    setState(() {
-      playlists = fetched;
-      loading = false;
-    });
-  }
-
-  Future<void> _deletePlaylist(Playlist playlist) async {
-    await PlaylistRepository.delete(playlist: playlist);
-    await _loadPlaylists();
-  }
-
-  void _showAddPlaylistDialog() {
-    final titleController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Playlist'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              final title = titleController.text.trim();
-              if (title.isEmpty) return;
-              final newPlaylist = Playlist(
-                date: DateTime.now(),
-                title: title,
-                mediatype: "Books",
-                media: [],
-              );
-
-              await PlaylistRepository.insert(playlist: newPlaylist);
-              Navigator.pop(context);
-              await _loadPlaylists();
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => PlaylistViewModel(),
+      child: const _PlaylistPageBody(),
     );
   }
+}
 
-  void _toggleEditMode() {
-    setState(() => _editMode = !_editMode);
-  }
+class _PlaylistPageBody extends StatelessWidget {
+  const _PlaylistPageBody({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final vm = context.watch<PlaylistViewModel>();
+
     return Scaffold(
-      drawer: NavigationDrawerWidget(),
+      drawer: const NavigationDrawerWidget(),
       backgroundColor: const Color.fromARGB(255, 188, 212, 205),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 112, 171, 153),
@@ -92,7 +33,7 @@ class _PlaylistsPageState extends State<PlaylistPage> {
         actions: [
           PopupMenuButton<int>(
             onSelected: (value) {
-              if (value == 0) _toggleEditMode();
+              if (value == 0) vm.toggleEditMode();
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 0, child: Text("Edit Library")),
@@ -100,17 +41,17 @@ class _PlaylistsPageState extends State<PlaylistPage> {
           ),
         ],
       ),
-      body: loading
-          ? Center(child: Image.asset('RemindDbFull.png', height: 96))
-          : playlists.isEmpty
+      body: vm.loading
+          ? const Center(child: CircularProgressIndicator())
+          : vm.playlists.isEmpty
               ? const Center(child: Text("No playlists found."))
               : RefreshIndicator(
-                  onRefresh: _loadPlaylists,
+                  onRefresh: vm.loadPlaylists,
                   child: ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: playlists.length,
+                    itemCount: vm.playlists.length,
                     itemBuilder: (context, index) {
-                      final playlist = playlists[index];
+                      final playlist = vm.playlists[index];
                       return Stack(
                         children: [
                           Card(
@@ -128,25 +69,25 @@ class _PlaylistsPageState extends State<PlaylistPage> {
                                   ),
                                 );
                                 if (result != null && result.id != null) {
-                                  await _loadPlaylists();
+                                  vm.loadPlaylists();
                                 }
                               },
                             ),
                           ),
-                          if (_editMode)
+                          if(vm.editMode)
                             Positioned(
                               right: 10,
                               top: 0,
                               bottom: 0,
                               child: GestureDetector(
                                 onTap: () async {
-                                  await _deletePlaylist(playlist);
+                                  await vm.deletePlaylist(playlist);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Deleted "${playlist.title}"')),
                                   );
                                 },
                                 child: Container(
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.redAccent,
                                     shape: BoxShape.circle,
                                   ),
@@ -160,19 +101,37 @@ class _PlaylistsPageState extends State<PlaylistPage> {
                     },
                   ),
                 ),
-      floatingActionButton: _editMode
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                setState(() => _editMode = false);
-              },
-              icon: const Icon(Icons.close),
-              label: const Text("Done Editing"),
-            )
-          : FloatingActionButton.extended(
-              onPressed: _showAddPlaylistDialog,
-              icon: const Icon(Icons.add),
-              label: const Text("Create New Playlist"),
-            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          if (vm.editMode) {
+            vm.toggleEditMode();
+          } else {
+            final controller = TextEditingController();
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text("Add New Playlist"),
+                content: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(labelText: "Title"),
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+                  ElevatedButton(
+                    onPressed: () {
+                      vm.addPlaylist(controller.text);
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Add"),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+        icon: Icon(vm.editMode ? Icons.close : Icons.add),
+        label: Text(vm.editMode ? "Done Editing" : "Create New Playlist"),
+      ),
     );
   }
 }
