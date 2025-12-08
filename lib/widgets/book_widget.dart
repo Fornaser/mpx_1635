@@ -10,7 +10,7 @@ class BookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final coverHeight = constraints.maxHeight * 0.70; // 70% of the tile
+        final coverHeight = constraints.maxHeight * 0.70; 
         final coverWidth = constraints.maxWidth;
 
         return Card(
@@ -26,8 +26,6 @@ class BookCard extends StatelessWidget {
                 height: coverHeight,
                 child: _buildCover(),
               ),
-
-              // Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Text(
@@ -41,8 +39,6 @@ class BookCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Authors
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Text(
