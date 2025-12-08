@@ -83,4 +83,37 @@ class PlaylistRepository {
       whereArgs: [playlist.id],
     );
   }
+
+  static Future<void> deleteBookFromPlaylist({
+    required int playlistId,
+    required String bookId,
+  }) async {
+    final db = await _database();
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableName,
+      where: 'id = ?',
+      whereArgs: [playlistId],
+    );
+
+    if (maps.isEmpty) return;
+
+    final mediaRaw = jsonDecode(maps[0]['media']);
+    final List<Map<String, String>> mediaList = mediaRaw.map<Map<String, String>>((item) {
+      if(item is String) return {'id': item, 'title': item};
+      if(playlistId is Map) return Map<String, String>.from(item);
+      throw Exception("Unknown media item format: $item");
+    }).toList();
+
+    mediaList.removeWhere((item) => item['id'] == bookId);
+
+    final updatedPlaylist = Playlist(
+      id: maps[0]['id'] as int,
+      title: maps[0]['title'] as String,
+      mediatype: maps[0]['mediatype'] as String,
+      media: mediaList,
+      date: DateTime.parse(maps[0]['date'] as String),
+    );
+
+    await update(playlist: updatedPlaylist);
+  }
 }

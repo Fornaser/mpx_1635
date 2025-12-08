@@ -14,7 +14,7 @@ class PlaylistPage extends StatefulWidget {
 class _PlaylistsPageState extends State<PlaylistPage> {
   List<Playlist> playlists = [];
   bool loading = true;
-  bool _editMode = false; 
+  bool _editMode = false;
 
   @override
   void initState() {
@@ -33,12 +33,12 @@ class _PlaylistsPageState extends State<PlaylistPage> {
 
   Future<void> _deletePlaylist(Playlist playlist) async {
     await PlaylistRepository.delete(playlist: playlist);
-    _loadPlaylists();
+    await _loadPlaylists();
   }
 
   void _showAddPlaylistDialog() {
     final titleController = TextEditingController();
-    String selectedMediaType = 'Books';
+    String selectedMediaType = 'Book';
 
     showDialog(
       context: context,
@@ -81,7 +81,7 @@ class _PlaylistsPageState extends State<PlaylistPage> {
 
               await PlaylistRepository.insert(playlist: newPlaylist);
               Navigator.pop(context);
-              _loadPlaylists();
+              await _loadPlaylists();
             },
             child: const Text('Add'),
           ),
@@ -98,90 +98,94 @@ class _PlaylistsPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: NavigationDrawerWidget(),
+      backgroundColor: const Color.fromARGB(255, 188, 212, 205),
       appBar: AppBar(
-       
+        backgroundColor: const Color.fromARGB(255, 112, 171, 153),
         title: const Text("Playlists"),
         actions: [
-           PopupMenuButton<int>(
-           onSelected: (value) {
-            if(value == 0) _toggleEditMode();
-           },
-           itemBuilder: (_) => [
-            const PopupMenuItem(value: 0, child: Text("Edit Library"),)
-           ],
+          PopupMenuButton<int>(
+            onSelected: (value) {
+              if (value == 0) _toggleEditMode();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 0, child: Text("Edit Library")),
+            ],
           ),
         ],
       ),
       body: loading
-           ? Center(child: Image.asset('RemindDbFull.png', height: 96))
+          ? Center(child: Image.asset('RemindDbFull.png', height: 96))
           : playlists.isEmpty
               ? const Center(child: Text("No playlists found."))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: playlists.length,
-                  itemBuilder: (context, index) {
-                    final playlist = playlists[index];
-                    return Stack(
-                      children: [
-                        Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            title: Text(playlist.title),
-                            subtitle: Text(
-                              '${playlist.mediatype} • ${playlist.date.toLocal().toIso8601String().split('T').first}',
+              : RefreshIndicator(
+                  onRefresh: _loadPlaylists,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: playlists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = playlists[index];
+                      return Stack(
+                        children: [
+                          Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            child: ListTile(
+                              title: Text(playlist.title),
+                              subtitle: Text(
+                                '${playlist.mediatype} • ${playlist.date.toLocal().toIso8601String().split('T').first}',
+                              ),
+                              onTap: () async {
+                                final result = await Navigator.push<Playlist?>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => LibraryPage(playlist: playlist),
+                                  ),
+                                );
+                                if (result != null && result.id != null) {
+                                  await _loadPlaylists();
+                                }
+                              },
                             ),
-                            onTap: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => LibraryPage(playlist: playlist),
-                                ),
-                              );
-                              if (result != null && result is Playlist) {
-                                setState(() {
-                                  final idx = playlists.indexWhere((p) => p.id == result.id);
-                                  if (idx != -1) playlists[idx] = result;
-                                });
-                              }
-                            },
                           ),
-                        ),
-                        if (_editMode)
-                          Positioned(
-                            right: 10,
-                            top: 0,
-                            bottom: 0,
-                            child: GestureDetector(
-                              onTap: () => _deletePlaylist(playlist),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  shape: BoxShape.circle,
+                          if (_editMode)
+                            Positioned(
+                              right: 10,
+                              top: 0,
+                              bottom: 0,
+                              child: GestureDetector(
+                                onTap: () async {
+                                  await _deletePlaylist(playlist);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Deleted "${playlist.title}"')),
+                                  );
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: const Icon(Icons.delete, color: Colors.white),
                                 ),
-                                padding: const EdgeInsets.all(8),
-                                child: const Icon(Icons.delete, color: Colors.white),
                               ),
                             ),
-                          ),
-                      ],
-                    );
-                  },
+                        ],
+                      );
+                    },
+                  ),
                 ),
       floatingActionButton: _editMode
-        ? FloatingActionButton.extended(
-            onPressed: () {
-              setState(() {
-                _editMode = false; 
-              });
-            },
-            icon: const Icon(Icons.close),
-            label: const Text("Done Editing"),
-          )
-        : FloatingActionButton.extended(
-            onPressed: _showAddPlaylistDialog,
-            icon: const Icon(Icons.add),
-            label: const Text("Create New Playlist"),
-          )
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                setState(() => _editMode = false);
+              },
+              icon: const Icon(Icons.close),
+              label: const Text("Done Editing"),
+            )
+          : FloatingActionButton.extended(
+              onPressed: _showAddPlaylistDialog,
+              icon: const Icon(Icons.add),
+              label: const Text("Create New Playlist"),
+            ),
     );
   }
 }

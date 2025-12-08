@@ -26,8 +26,6 @@ class BookCard extends StatelessWidget {
                 height: coverHeight,
                 child: _buildCover(),
               ),
-
-              // Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 child: Text(
@@ -41,8 +39,6 @@ class BookCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Authors
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: Text(

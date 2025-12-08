@@ -69,6 +69,8 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
   void _showAddToPlaylistDialog() async {
     final playlists = await PlaylistRepository.getPlaylists();
 
+    final scaffoldContext = context; 
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -85,7 +87,6 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
                     return ListTile(
                       title: Text(playlist.title),
                       onTap: () async {
-                        // Add Google Books info as a map
                         playlist.media.add({
                           'id': fullBook.id,
                           'title': fullBook.title,
@@ -94,8 +95,7 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
 
                         await PlaylistRepository.update(playlist: playlist);
                         Navigator.pop(context);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(content: Text('Added to ${playlist.title}')),
                         );
                       },
@@ -114,12 +114,10 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
   }
 
   void _handleRemindTap() async {
-    // Prevent overlapping animations
     if (_animController.isAnimating) return;
     try {
       await _animController.forward(from: 0.0);
     } catch (_) {
-      // Ignore animation errors
     }
     if (!mounted) return;
 
@@ -176,7 +174,6 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () {
-                          // Close and return selection (functionality not implemented)
                           Navigator.of(context).pop(selected);
                         },
                         child: const Text('Confirm'),
@@ -196,7 +193,8 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("RemindDB"), backgroundColor: Colors.grey),
+      backgroundColor: const Color.fromARGB(255, 188, 212, 205),
+      appBar: AppBar(title: Text("RemindDB"), backgroundColor: const Color.fromARGB(255, 112, 171, 153),),
       body: loading
       ? Center(child: Image.asset('RemindDbFull.png', height: 96))
       : SingleChildScrollView(
@@ -232,7 +230,6 @@ class _MediaPageState extends State<MediaPage> with SingleTickerProviderStateMix
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Use the extracted RemindButton widget
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 0),
                       child: RemindButton(book: fullBook),
